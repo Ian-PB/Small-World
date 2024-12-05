@@ -6,7 +6,7 @@
 # ----------------------------------------
 # Default Compiler and Directories
 # ----------------------------------------
-CC						:= gcc
+CC						:= g++
 
 # ----------------------------------------
 # General Configuration
@@ -105,8 +105,8 @@ endif
 # ----------------------------------------
 # Source files
 # ----------------------------------------
-SRC						:= $(wildcard $(SRC_DIR)/*.c)
-OBJ						:= $(SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
+SRC						:= $(wildcard $(SRC_DIR)/*.cpp)
+OBJ						:= $(SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
 
 # ----------------------------------------
 # Targets
@@ -116,7 +116,7 @@ OBJ						:= $(SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
 all: check_submodules build run
 
 # Compile object files
-$(BUILD_DIR)/$(OBJECTS_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/$(OBJECTS_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(BUILD_DIR)/$(OBJECTS_DIR)
     # Copy icon files and spritesheet(s) png
     # Just PNGs copied at the moment
@@ -260,7 +260,7 @@ build_web: check_submodules install_toolchain_web
 	if [ -f "$(EMSDK_DIR)/emsdk_env.sh" ]; then \
 		$(call INFO_MSG, $(MSG_BUILD_WEB_EMSDK)); \
 		bash -i -c "source $(EMSDK_DIR)/emsdk_env.sh && \
-		emcc $(SRC_DIR)/*.c -o ./$(WEB_DIR)/index.html \
+		emcc $(SRC_DIR)/*.cpp -o ./$(WEB_DIR)/index.html \
 			-I. -I$(RAYLIB_INCLUDE) -I$(CUTEHEADERS_INCLUDE) \
 			-L$(RAYLIB_LIBRARY_WEB) \
 			-lraylib \
