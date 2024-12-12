@@ -113,11 +113,20 @@ void UpdateGame(GameData *gameData)
             HandleEvent(&gameData->player->base, EVENT_NONE); // Ideally a EVENT_COLLISION_END
         }
     }
-    /* else if (&gameData->player->base.currentState == STATE_COLLISION)
+    
+    // Check collision with the enemy and the player's attack
+    if (gameData->player->attacking)
     {
-        printf("Transitioning back to STATE_IDLE state from STATE_COLLISION\n");
-        HandleEvent(&gameData->player, EVENT_NONE);
-    } */
+        if (c2CircletoCircle(gameData->player->attackArea, gameData->npc->base.collider))
+        {
+            if (gameData->npc->base.currentState != STATE_COLLISION)
+            {
+                HandleEvent(&gameData->npc->base, EVENT_COLLISION_START);
+
+                gameData->npc->base.health--;
+            }
+        }
+    }
 }
 
 /**
@@ -147,6 +156,13 @@ void DrawGame(GameData *gameData)
 
     // Draw a circle representing the player at their position
     DrawCircleLines(gameData->player->base.position.x, gameData->player->base.position.y, 20, gameData->player->base.color);
+
+    if (gameData->player->attacking)
+    {
+        // Draw the attack area of the player
+        DrawCircle(gameData->player->attackArea.p.x, gameData->player->attackArea.p.y, gameData->player->attackArea.r, gameData->player->base.color);
+    }
+
     // Draw text showing player position below the player
     DrawText(infoPosition,
              gameData->player->base.position.x - (MeasureText(infoPosition, 20) / 2),
@@ -167,6 +183,16 @@ void DrawGame(GameData *gameData)
 
     // Draw the health bar foreground (green based on current health)
     DrawRectangle(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight, GREEN);
+
+    // Enemy health bar
+    const int healthBarXNPC = gameData->npc->base.position.x - (healthBarWidth / 2); // Position health bar above the player
+    const int healthBarYNPC = gameData->npc->base.position.y - 40;
+    // Calculate health percentage (for drawing the health bar)
+    float healthPercentageNPC = (float)gameData->npc->base.health / 100;
+    // Draw the background of the health bar (gray)
+    DrawRectangle(healthBarXNPC, healthBarYNPC, healthBarWidth, healthBarHeight, GRAY);
+    // Draw the health bar foreground (green based on current health)
+    DrawRectangle(healthBarXNPC, healthBarYNPC, healthBarWidth * healthPercentageNPC, healthBarHeight, GREEN);
 
     // Drawing NPC and Position Data
     infoPosition = TextFormat("(%.f, %.f)", gameData->npc->base.position.x, gameData->npc->base.position.y);

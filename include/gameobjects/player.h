@@ -26,6 +26,8 @@ typedef struct
 
     int ROLL_DURATION; // frames
     int ATTACK_DURATION;
+
+    c2Circle attackArea;
 } Player;
 
 

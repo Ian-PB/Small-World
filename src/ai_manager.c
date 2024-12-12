@@ -52,8 +52,15 @@ Command NPCFollowPlayer(NPC *obj, Player player)
  */
 Command PollAI(GameObject *obj, GameObject* player)
 {
+    if (obj->health <= 0)
+    {
+        obj->position.x = 450;
+        obj->position.y = 450;
+
+        obj->health = 100;
+    }
     // If the player is in range
-    if (Vector2Distance(obj->position, player->position) < 300.0f)
+    else if (Vector2Distance(obj->position, player->position) < 300.0f)
     {
         if (obj->position.y > player->position.y)
         {
@@ -72,9 +79,7 @@ Command PollAI(GameObject *obj, GameObject* player)
             return COMMAND_MOVE_RIGHT;
         }
     }
-    else
-    {
-    }
+    
 
     return COMMAND_NONE;
 }

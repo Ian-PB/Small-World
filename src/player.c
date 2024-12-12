@@ -58,6 +58,10 @@ Player *InitPlayer(const char *name)
     player->attackTimer = 0;
     player->ATTACK_DURATION = 40;
 
+    player->attackArea.p.x = player->base.position.x;
+    player->attackArea.p.y = player->base.position.y;
+    player->attackArea.r = 5;
+
 
     // Init the Player FSM
     InitPlayerFSM(&player->base);
@@ -751,6 +755,11 @@ void PlayerEnterAttacking(GameObject *obj)
         };
 
         InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+
+        // Change area of attack
+        player->attackArea.p.y = obj->position.y - 25;
+        player->attackArea.p.x = obj->position.x;
+        player->attackArea.r = 25;
     }
     else if (obj->velocity.x == 0 && obj->velocity.y == 1) // Down
     {
@@ -764,6 +773,11 @@ void PlayerEnterAttacking(GameObject *obj)
         };
 
         InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+
+        // Change area of attack
+        player->attackArea.p.y = obj->position.y + 25;
+        player->attackArea.p.x = obj->position.x;
+        player->attackArea.r = 25;
     }
     else if (obj->velocity.x == -1 && obj->velocity.y == 0) // Left
     {
@@ -777,6 +791,11 @@ void PlayerEnterAttacking(GameObject *obj)
         };
 
         InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+
+        // Change area of attack
+        player->attackArea.p.x = obj->position.x - 25;
+        player->attackArea.p.y = obj->position.y;
+        player->attackArea.r = 25;
     }
     else if (obj->velocity.x == 1 && obj->velocity.y == 0) // Left
     {
@@ -790,6 +809,11 @@ void PlayerEnterAttacking(GameObject *obj)
         };
 
         InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+
+        // Change area of attack
+        player->attackArea.p.x = obj->position.x + 25;
+        player->attackArea.p.y = obj->position.y;
+        player->attackArea.r = 25;
     }
 
     // Set attacking to true
