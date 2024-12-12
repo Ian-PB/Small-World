@@ -43,13 +43,37 @@ void NPCEnterAttacking(GameObject *obj);
 void NPCUpdateAttacking(GameObject *obj);
 void NPCExitAttacking(GameObject *obj);
 
-// Handle events in the shielding state
-void NPCShieldingHandleEvent(GameObject *obj, Event event);
+// Handle events in the moving up state
+void NPCMovingUpHandleEvent(GameObject *obj, Event event);
 
-// State transition functions for shielding state
-void NPCEnterShielding(GameObject *obj);
-void NPCUpdateShielding(GameObject *obj);
-void NPCExitShielding(GameObject *obj);
+// State transition functions for moving up state
+void NPCEnterMovingUp(GameObject *obj); 
+void NPCUpdateMovingUp(GameObject *obj);
+void NPCExitMovingUp(GameObject *obj);
+
+// Handle events in the moving down state
+void NPCMovingDownHandleEvent(GameObject *obj, Event event);
+
+// State transition functions for moving down state
+void NPCEnterMovingDown(GameObject *obj);  
+void NPCUpdateMovingDown(GameObject *obj); 
+void NPCExitMovingDown(GameObject *obj);   
+
+// Handle events in the moving left state
+void NPCMovingLeftHandleEvent(GameObject *obj, Event event);
+
+// State transition functions for moving up state
+void NPCEnterMovingLeft(GameObject *obj);  
+void NPCUpdateMovingLeft(GameObject *obj); 
+void NPCExitMovingLeft(GameObject *obj); 
+
+// Handle events in the moving right state 
+void NPCMovingRightHandleEvent(GameObject *obj, Event event);
+
+// State transition functions for moving up state
+void NPCEnterMovingRight(GameObject *obj);  
+void NPCUpdateMovingRight(GameObject *obj);
+void NPCExitMovingRight(GameObject *obj); 
 
 // Handle events in the dead state
 void NPCDeadHandleEvent(GameObject *obj, Event event);
@@ -59,4 +83,6 @@ void NPCEnterDead(GameObject *obj);
 void NPCUpdateDead(GameObject *obj);
 void NPCExitDead(GameObject *obj);
 
-#endif // NPC_H
+void NPCMove(NPC *npc, Vector2* moveDirection);
+
+#endif

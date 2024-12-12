@@ -64,19 +64,22 @@ void MediatorExecuteCommand(Command command, Mediator *mediator)
         HandleEvent(mediator->obj, EVENT_NONE);
         break;
     case COMMAND_MOVE_UP:
-        HandleEvent(mediator->obj, EVENT_MOVE);
+        HandleEvent(mediator->obj, EVENT_MOVE_UP);
         break;
     case COMMAND_MOVE_DOWN:
-        HandleEvent(mediator->obj, EVENT_MOVE);
+        HandleEvent(mediator->obj, EVENT_MOVE_DOWN);
         break;
     case COMMAND_MOVE_LEFT:
-        HandleEvent(mediator->obj, EVENT_MOVE);
+        HandleEvent(mediator->obj, EVENT_MOVE_LEFT);
         break;
     case COMMAND_MOVE_RIGHT:
-        HandleEvent(mediator->obj, EVENT_MOVE);
+        HandleEvent(mediator->obj, EVENT_MOVE_RIGHT);
         break;
     case COMMAND_ATTACK:
         HandleEvent(mediator->obj, EVENT_ATTACK);
+        break;
+    case COMMAND_ROLL:
+        HandleEvent(mediator->obj, EVENT_ROLL);
         break;
     case COMMAND_COLLISION_START:
         HandleEvent(mediator->obj, EVENT_DIE);

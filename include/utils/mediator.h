@@ -21,4 +21,4 @@ void MediatorExecuteCommand(Command command, Mediator *mediator);
 // Cleanup Mediator
 void DeleteMediator(Mediator *mediator);
 
-#endif // MEDIATOR_H
+#endif

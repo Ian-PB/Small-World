@@ -49,6 +49,16 @@ Player *InitPlayer(const char *name)
     player->stamina = 100.0f;
     player->mana = 100.0f;
 
+    player->rolling = false;
+    player->rollTimer = 0;
+    player->ROLL_DURATION = 20;
+
+    // Attacking Variables
+    player->attacking = false;
+    player->attackTimer = 0;
+    player->ATTACK_DURATION = 40;
+
+
     // Init the Player FSM
     InitPlayerFSM(&player->base);
 
@@ -102,7 +112,7 @@ void InitPlayerFSM(GameObject *obj)
 
     // ---- STATE_IDLE state configuration ----
     // Define valid transitions from STATE_IDLE
-    State idleValidTransitions[] = {STATE_WALKING, STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
+    State idleValidTransitions[] = {STATE_WALKING, STATE_ATTACKING, STATE_ROLLING, STATE_SHIELD, STATE_DEAD};
 
     // Set up the state configuration for STATE_IDLE
     obj->stateConfigs[STATE_IDLE].name = "Player_Idle";
@@ -116,7 +126,7 @@ void InitPlayerFSM(GameObject *obj)
 
     // ---- STATE_WALKING state configuration ----
     // Define valid transitions from STATE_WALKING
-    State walkingValidTransitions[] = {STATE_IDLE, STATE_ATTACKING, STATE_DEAD};
+    State walkingValidTransitions[] = {STATE_IDLE, STATE_ATTACKING, STATE_ROLLING, STATE_DEAD};
 
     // Set up the state configuration for STATE_WALKING
     obj->stateConfigs[STATE_WALKING].name = "Player_Walking";
@@ -127,6 +137,20 @@ void InitPlayerFSM(GameObject *obj)
 
     // Configure valid transitions for STATE_WALKING
     StateTransitions(&obj->stateConfigs[STATE_WALKING], walkingValidTransitions, sizeof(walkingValidTransitions) / sizeof(State));
+
+    // ---- STATE_ROLLING state configuration ----
+    // Define valid transitions from STATE_ROLLING
+    State rollValidTransitions[] = {STATE_IDLE};
+
+    // Set up the state configuration for STATE_ROLLING
+    obj->stateConfigs[STATE_ROLLING].name = "Player_Rolling";
+    obj->stateConfigs[STATE_ROLLING].HandleEvent = PlayerRollingHandleEvent;
+    obj->stateConfigs[STATE_ROLLING].Entry = PlayerEnterRolling;
+    obj->stateConfigs[STATE_ROLLING].Update = PlayerUpdateRolling;
+    obj->stateConfigs[STATE_ROLLING].Exit = PlayerExitRolling;
+
+    // Configure valid transitions for STATE_ROLLING
+    StateTransitions(&obj->stateConfigs[STATE_ROLLING], rollValidTransitions, sizeof(rollValidTransitions) / sizeof(State));
 
     // ---- STATE_ATTACKING state configuration ----
     // Define valid transitions from STATE_ATTACKING
@@ -184,6 +208,7 @@ void InitPlayerFSM(GameObject *obj)
     // Configure valid transitions for STATE_RESPAWN
     StateTransitions(&obj->stateConfigs[STATE_RESPAWN], respawnValidTransitions, sizeof(respawnValidTransitions) / sizeof(State));
 
+
 // For unimplemented states, set them to empty defaults
 #define EMPTY_STATE_CONFIG \
     (StateConfig){NULL, NULL, NULL, NULL, NULL, NULL, 0}
@@ -199,8 +224,28 @@ void PlayerIdleHandleEvent(GameObject *obj, Event event)
 
     switch (event)
     {
-    case EVENT_MOVE:
+    case EVENT_MOVE_UP:
         // Transition back to Idle if no specific event is triggered
+        obj->velocity.x = 0;
+        obj->velocity.y = -1;
+        ChangeState(obj, STATE_WALKING);
+        break;
+    case EVENT_MOVE_DOWN:
+        // Transition back to Idle if no specific event is triggered
+        obj->velocity.x = 0;
+        obj->velocity.y = 1;
+        ChangeState(obj, STATE_WALKING);
+        break;
+    case EVENT_MOVE_LEFT:
+        // Transition back to Idle if no specific event is triggered
+        obj->velocity.x = -1;
+        obj->velocity.y = 0;
+        ChangeState(obj, STATE_WALKING);
+        break;
+    case EVENT_MOVE_RIGHT:
+        // Transition back to Idle if no specific event is triggered
+        obj->velocity.x = 1;
+        obj->velocity.y = 0;
         ChangeState(obj, STATE_WALKING);
         break;
     case EVENT_ATTACK:
@@ -215,11 +260,15 @@ void PlayerIdleHandleEvent(GameObject *obj, Event event)
         // Transition to Dead state if a die event is received
         ChangeState(obj, STATE_DEAD);
         break;
+    case EVENT_ROLL:
+        ChangeState(obj, STATE_ROLLING);
+        break;
     case EVENT_NONE:
         obj->previousState = obj->currentState;
         break;
     // Ignore Events for other cases
     case EVENT_RESPAWN:
+    case EVENT_MOVE:
     case EVENT_COLLISION_START:
     case EVENT_COLLISION_END:
     case EVENT_COUNT:
@@ -248,8 +297,15 @@ void PlayerWalkingHandleEvent(GameObject *obj, Event event)
         // Transition to Dead state if a die event is received
         ChangeState(obj, STATE_DEAD);
         break;
+    case EVENT_ROLL:
+        ChangeState(obj, STATE_ROLLING);
+        break;
     // Ignore Events for other cases
+    case EVENT_MOVE_UP:
+    case EVENT_MOVE_DOWN:
     case EVENT_MOVE:
+    case EVENT_MOVE_LEFT:
+    case EVENT_MOVE_RIGHT:
     case EVENT_DEFEND:
     case EVENT_RESPAWN:
     case EVENT_COLLISION_START:
@@ -259,32 +315,90 @@ void PlayerWalkingHandleEvent(GameObject *obj, Event event)
     }
 }
 
+void PlayerRollingHandleEvent(GameObject *obj, Event event)
+{
+    Player *player = (Player *)obj;
+    printf("%s Walking HandleEvent\n", obj->name);
+    printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
+
+    // While rolling you cant swap states
+    if (!player->rolling)
+    {
+        switch (event)
+        {
+        case EVENT_NONE:
+            // Transition back to Idle if no specific event is triggered
+            ChangeState(obj, STATE_IDLE);
+            break;
+        case EVENT_MOVE_UP:
+            // Transition to Walkinging state if an walk event is received
+            ChangeState(obj, STATE_WALKING);
+            break;
+        case EVENT_MOVE_DOWN:
+            // Transition to Walkinging state if an walk event is received
+            ChangeState(obj, STATE_WALKING);
+            break;
+        case EVENT_MOVE_LEFT:
+            // Transition to Walkinging state if an walk event is received
+            ChangeState(obj, STATE_WALKING);
+            break;
+        case EVENT_MOVE_RIGHT:
+            // Transition to Walkinging state if an walk event is received
+            ChangeState(obj, STATE_WALKING);
+            break;
+        case EVENT_DIE:
+            // Transition to Dead state if a die event is received
+            ChangeState(obj, STATE_DEAD);
+            break;
+        // Ignore Events for other cases
+    
+        case EVENT_ATTACK:
+        case EVENT_ROLL:
+        case EVENT_DEFEND:
+        case EVENT_MOVE:
+        case EVENT_RESPAWN:
+        case EVENT_COLLISION_START:
+        case EVENT_COLLISION_END:
+        case EVENT_COUNT:
+            break;
+        }
+    }
+}
+
 // Handles events for the Player when in the Attacking state
 void PlayerAttackingHandleEvent(GameObject *obj, Event event)
 {
     Player *player = (Player *)obj;
     printf("\n%s Attacking HandleEvent\n", obj->name);
     printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
-
-    switch (event)
+    
+    if (!player->attacking)
     {
-    case EVENT_NONE:
-        // Transition back to Idle if no specific event is triggered
-        ChangeState(obj, STATE_IDLE);
-        break;
-    case EVENT_DIE:
-        // Transition to Dead state if a die event is received
-        ChangeState(obj, STATE_DEAD);
-        break;
-    // Ignore Events for other cases
-    case EVENT_MOVE:
-    case EVENT_ATTACK:
-    case EVENT_DEFEND:
-    case EVENT_RESPAWN:
-    case EVENT_COLLISION_START:
-    case EVENT_COLLISION_END:
-    case EVENT_COUNT:
-        break;
+        switch (event)
+        {
+        case EVENT_NONE:
+            // Transition back to Idle if no specific event is triggered
+            ChangeState(obj, STATE_IDLE);
+            break;
+        case EVENT_DIE:
+            // Transition to Dead state if a die event is received
+            ChangeState(obj, STATE_DEAD);
+            break;
+        // Ignore Events for other cases
+        case EVENT_MOVE_UP:
+        case EVENT_ROLL:
+        case EVENT_MOVE_DOWN:
+        case EVENT_MOVE_LEFT:
+        case EVENT_MOVE_RIGHT:
+        case EVENT_ATTACK:
+        case EVENT_DEFEND:
+        case EVENT_RESPAWN:
+        case EVENT_MOVE:
+        case EVENT_COLLISION_START:
+        case EVENT_COLLISION_END:
+        case EVENT_COUNT:
+            break;
+        }
     }
 }
 
@@ -306,10 +420,15 @@ void PlayerShieldingHandleEvent(GameObject *obj, Event event)
         ChangeState(obj, STATE_DEAD);
         break;
     // Ignore Events for other cases
-    case EVENT_MOVE:
+    case EVENT_MOVE_UP:
+    case EVENT_MOVE_DOWN:
+    case EVENT_MOVE_LEFT:
+    case EVENT_MOVE_RIGHT:
+    case EVENT_ROLL:
     case EVENT_ATTACK:
     case EVENT_DEFEND:
     case EVENT_RESPAWN:
+    case EVENT_MOVE:
     case EVENT_COLLISION_START:
     case EVENT_COLLISION_END:
     case EVENT_COUNT:
@@ -338,10 +457,10 @@ void PlayerRespawnHandleEvent(GameObject *obj, Event event)
 }
 
 // Common movement function to handle state and animation transitions
-void PlayerMove(Player *player, Vector2 moveDirection)
+void PlayerMove(Player *player, Vector2* moveDirection)
 {
-    player->base.position.x += moveDirection.x;
-    player->base.position.y += moveDirection.y;
+    player->base.position.x += moveDirection->x;
+    player->base.position.y += moveDirection->y;
 
     // Update Collider
     player->base.collider.p.x = player->base.position.x;
@@ -522,10 +641,11 @@ void PlayerEnterWalking(GameObject *obj)
     Player *player = (Player *)obj;
     printf("\n%s -> ENTER -> Walking\n", obj->name);
     printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
-    // Complete the remainder of the method
 
-    // Moving Up Frames Default for moving
-    Rectangle walk[9] = {
+    if (obj->velocity.x == 0 && obj->velocity.y == -1)
+    {
+        // Moving Up Frames Default for moving
+        Rectangle walkUp[9] = {
         {0, 512, 64, 64},   // Frame 1: Row 8, Column 1
         {64, 512, 64, 64},  // Frame 2: Row 8, Column 2
         {128, 512, 64, 64}, // Frame 3: Row 8, Column 3
@@ -535,56 +655,61 @@ void PlayerEnterWalking(GameObject *obj)
         {384, 512, 64, 64}, // Frame 7: Row 8, Column 7
         {448, 512, 64, 64}, // Frame 8: Row 8, Column 8
         {512, 512, 64, 64}  // Frame 9: Row 8, Column 9
-    };
+        };
 
-    InitGameObjectAnimation(&player->base, walk, 9, 0.1f);
+        InitGameObjectAnimation(&player->base, walkUp, 9, 0.1f);
+    }
+    else if (obj->velocity.x == 0 && obj->velocity.y == 1)
+    {
+        // Moving Down
+        Rectangle walkDown[9] = {
+        {0, 640, 64, 64},   // Frame 0
+        {64, 640, 64, 64},  // Frame 1
+        {128, 640, 64, 64}, // Frame 2
+        {192, 640, 64, 64}, // Frame 3
+        {256, 640, 64, 64}, // Frame 4
+        {320, 640, 64, 64}, // Frame 5
+        {384, 640, 64, 64}, // Frame 6
+        {448, 640, 64, 64}, // Frame 7
+        {512, 640, 64, 64}  // Frame 8
+        };
 
-    // Moving Down
-    // Place this in its own method
-    // Rectangle frames[9] = {
-    //     {0, 640, 64, 64},   // Frame 0
-    //     {64, 640, 64, 64},  // Frame 1
-    //     {128, 640, 64, 64}, // Frame 2
-    //     {192, 640, 64, 64}, // Frame 3
-    //     {256, 640, 64, 64}, // Frame 4
-    //     {320, 640, 64, 64}, // Frame 5
-    //     {384, 640, 64, 64}, // Frame 6
-    //     {448, 640, 64, 64}, // Frame 7
-    //     {512, 640, 64, 64}  // Frame 8
-    // };
+        InitGameObjectAnimation(&player->base, walkDown, 9, 0.1f);
+    }
+    else if (obj->velocity.x == -1 && obj->velocity.y == 0)
+    {
+        // Moving Left
+        Rectangle walkLeft[9] = {
+        {0, 576, 64, 64},   // Frame 0
+        {64, 576, 64, 64},  // Frame 1
+        {128, 576, 64, 64}, // Frame 2
+        {192, 576, 64, 64}, // Frame 3
+        {256, 576, 64, 64}, // Frame 4
+        {320, 576, 64, 64}, // Frame 5
+        {384, 576, 64, 64}, // Frame 6
+        {448, 576, 64, 64}, // Frame 7
+        {512, 576, 64, 64}  // Frame 8
+        };
 
-    // PlayerMove(player, (Vector2){0, 1}, BLUE, frames, 9);
+        InitGameObjectAnimation(&player->base, walkLeft, 9, 0.1f);
+    }
+    else if (obj->velocity.x == 1 && obj->velocity.y == 0)
+    {
+        //Moving Right
+        Rectangle walkRight[9] = {
+        {0, 704, 64, 64},   // Frame 0
+        {64, 704, 64, 64},  // Frame 1
+        {128, 704, 64, 64}, // Frame 2
+        {192, 704, 64, 64}, // Frame 3
+        {256, 704, 64, 64}, // Frame 4
+        {320, 704, 64, 64}, // Frame 5
+        {384, 704, 64, 64}, // Frame 6
+        {448, 704, 64, 64}, // Frame 7
+        {512, 704, 64, 64}  // Frame 8
+        };
 
-    // Moving Left
-    // Place this in its own method
-    // Rectangle frames[9] = {
-    //     {0, 576, 64, 64},   // Frame 0
-    //     {64, 576, 64, 64},  // Frame 1
-    //     {128, 576, 64, 64}, // Frame 2
-    //     {192, 576, 64, 64}, // Frame 3
-    //     {256, 576, 64, 64}, // Frame 4
-    //     {320, 576, 64, 64}, // Frame 5
-    //     {384, 576, 64, 64}, // Frame 6
-    //     {448, 576, 64, 64}, // Frame 7
-    //     {512, 576, 64, 64}  // Frame 8
-    // };
-
-    // PlayerMove(player, (Vector2){-1, 0}, BLUE, frames, 9);
-
-    // Moving Right
-    // Place this in its own method
-    // Rectangle frames[9] = {
-    //     {0, 704, 64, 64},   // Frame 0
-    //     {64, 704, 64, 64},  // Frame 1
-    //     {128, 704, 64, 64}, // Frame 2
-    //     {192, 704, 64, 64}, // Frame 3
-    //     {256, 704, 64, 64}, // Frame 4
-    //     {320, 704, 64, 64}, // Frame 5
-    //     {384, 704, 64, 64}, // Frame 6
-    //     {448, 704, 64, 64}, // Frame 7
-    //     {512, 704, 64, 64}  // Frame 8
-    // };
-    // PlayerMove(player, (Vector2){1, 0}, BLUE, frames, 9);
+        InitGameObjectAnimation(&player->base, walkRight, 9, 0.1f);
+    }
 }
 
 void PlayerUpdateWalking(GameObject *obj)
@@ -592,8 +717,8 @@ void PlayerUpdateWalking(GameObject *obj)
     Player *player = (Player *)obj;
     printf("\n%s -> UPDATE -> Walking\n", obj->name);
     printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
-    // Complete the remainder of the method
-    PlayerMove(player, (Vector2){0, -1});
+    
+    PlayerMove(player, &obj->velocity);
     UpdateAnimation(&obj->animation);
 }
 
@@ -614,16 +739,61 @@ void PlayerEnterAttacking(GameObject *obj)
     // Example: Deduct some stamina when attacking
 
     // Attack animation (or other actions as needed)
-    Rectangle attacking[6] = {
+    if (obj->velocity.x == 0 && obj->velocity.y == -1) // Up
+    {
+        Rectangle attacking[6] = {
         {0, 2952, 192, 192},   // Frame 1: Row 44, Column 1
         {192, 2952, 192, 192}, // Frame 2: Row 44, Column 2
         {384, 2952, 192, 192}, // Frame 3: Row 44, Column 3
         {576, 2952, 192, 192}, // Frame 4: Row 44, Column 4
         {768, 2952, 192, 192}, // Frame 5: Row 44, Column 5
         {960, 2952, 192, 192}  // Frame 6: Row 44, Column 6
-    };
+        };
 
-    InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+        InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+    }
+    else if (obj->velocity.x == 0 && obj->velocity.y == 1) // Down
+    {
+        Rectangle attacking[6] = {
+        {0, 3336, 192, 192},   // Frame 1: Row 44, Column 1
+        {192, 3336, 192, 192}, // Frame 2: Row 44, Column 2
+        {384, 3336, 192, 192}, // Frame 3: Row 44, Column 3
+        {576, 3336, 192, 192}, // Frame 4: Row 44, Column 4
+        {768, 3336, 192, 192}, // Frame 5: Row 44, Column 5
+        {960, 3336, 192, 192}  // Frame 6: Row 44, Column 6
+        };
+
+        InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+    }
+    else if (obj->velocity.x == -1 && obj->velocity.y == 0) // Left
+    {
+        Rectangle attacking[6] = {
+        {0, 3144, 192, 192},   // Frame 1: Row 44, Column 1
+        {192, 3144, 192, 192}, // Frame 2: Row 44, Column 2
+        {384, 3144, 192, 192}, // Frame 3: Row 44, Column 3
+        {576, 3144, 192, 192}, // Frame 4: Row 44, Column 4
+        {768, 3144, 192, 192}, // Frame 5: Row 44, Column 5
+        {960, 3144, 192, 192}  // Frame 6: Row 44, Column 6
+        };
+
+        InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+    }
+    else if (obj->velocity.x == 1 && obj->velocity.y == 0) // Left
+    {
+        Rectangle attacking[6] = {
+        {0, 3528, 192, 192},   // Frame 1: Row 44, Column 1
+        {192, 3528, 192, 192}, // Frame 2: Row 44, Column 2
+        {384, 3528, 192, 192}, // Frame 3: Row 44, Column 3
+        {576, 3528, 192, 192}, // Frame 4: Row 44, Column 4
+        {768, 3528, 192, 192}, // Frame 5: Row 44, Column 5
+        {960, 3528, 192, 192}  // Frame 6: Row 44, Column 6
+        };
+
+        InitGameObjectAnimation(&player->base, attacking, 6, 0.1f);
+    }
+
+    // Set attacking to true
+    player->attacking = true;
 }
 
 void PlayerUpdateAttacking(GameObject *obj)
@@ -634,6 +804,21 @@ void PlayerUpdateAttacking(GameObject *obj)
     // Complete the remainder of the method
     // Check if the attack should end or be interrupted (e.g., stamina depletion)
     UpdateAnimation(&obj->animation);
+
+    if (player->attackTimer < player->ATTACK_DURATION)
+    {
+        player->attackTimer++;
+    }
+    // Once attack is completed:
+    else
+    {
+        // Reset timer
+        player->attackTimer = 0;
+
+        player->attacking = false;
+
+        ChangeState(obj, STATE_IDLE);
+    }
 }
 
 void PlayerExitAttacking(GameObject *obj)
@@ -710,4 +895,63 @@ void PlayerExitRespawn(GameObject *obj)
 {
     printf("\n%s <- EXIT <- Respawn\n", obj->name);
     // Complete the remainder of the method
+}
+
+void PlayerEnterRolling(GameObject *obj)
+{
+    Player *player = (Player *)obj;
+    printf("\n%s -> ENTER -> Rolling\n", obj->name);
+    printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
+
+    // Roll Frames Default for rolling
+    Rectangle roll[9] = {
+        {0, 1280, 64, 64},   // Frame 1: Row 8, Column 1
+        {64, 1280, 64, 64},  // Frame 2: Row 8, Column 2
+        {128, 1280, 64, 64}, // Frame 3: Row 8, Column 3
+        {192, 1280, 64, 64}, // Frame 4: Row 8, Column 4
+        {256, 1280, 64, 64}, // Frame 5: Row 8, Column 5
+        {320, 1280, 64, 64}, // Frame 6: Row 8, Column 6
+    };
+
+    InitGameObjectAnimation(&player->base, roll, 6, 0.1f);
+
+    // Set rolling to true
+    player->rolling = true;
+    // Change the speed of the player
+    obj->velocity.x *= 10;
+    obj->velocity.y *= 10;
+}
+
+void PlayerUpdateRolling(GameObject *obj)
+{
+    Player *player = (Player *)obj;
+    printf("\n%s -> UPDATE -> Rolling\n", obj->name);
+    printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
+
+    // Update the rolling animation
+    UpdateAnimation(&obj->animation);
+
+    if (player->rollTimer < player->ROLL_DURATION)
+    {
+        player->rollTimer++;
+    
+        PlayerMove(player, &obj->velocity);
+    }
+    // Once roll is completed:
+    else
+    {
+        // Reset timer
+        player->rollTimer = 0;
+
+        player->rolling = false;
+
+        ChangeState(obj, STATE_IDLE);
+    }
+}
+
+void PlayerExitRolling(GameObject *obj)
+{
+    Player *player = (Player *)obj;
+    printf("\n%s <- EXIT <- Rolling\n", obj->name);
+    printf("Stamina: %.1f, Mana: %.1f\n\n", player->stamina, player->mana);
 }

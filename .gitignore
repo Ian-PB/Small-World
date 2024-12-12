@@ -21,9 +21,5 @@
 # Web dir
 /web/
 
-# Ignore submodule directories
-raylib_starter/
-cute_headers/
-
 # Object files
 *.o

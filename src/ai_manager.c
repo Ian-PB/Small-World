@@ -4,6 +4,9 @@
 #include "../include/command/command.h"
 #include "../include/utils/ai_manager.h"
 
+#include "../include/gameobjects/npc.h"
+#include "../include/gameobjects/player.h"
+
 /**
  * InitAIManager - Initializes the AI manager and sets up any required resources.
  *
@@ -16,6 +19,28 @@ void InitAIManager()
     // Initialize AI
 }
 
+Command NPCFollowPlayer(NPC *obj, Player player)
+{
+    if (obj->base.position.x <= player.base.position.x)
+    {
+        return COMMAND_MOVE_RIGHT;
+    }
+    else if (obj->base.position.x >= player.base.position.x)
+    {
+        return COMMAND_MOVE_LEFT;
+    }
+    else if (obj->base.position.y <= player.base.position.y)
+    {
+        return COMMAND_MOVE_DOWN;
+    }
+    else if (obj->base.position.y >= player.base.position.y)
+    {
+        return COMMAND_MOVE_UP;
+    }
+
+    return COMMAND_NONE;
+}
+
 /**
  * PollAI - Retrieves a random command from the AI.
  *
@@ -25,10 +50,33 @@ void InitAIManager()
  *
  * @return: A randomly chosen Command value from the range [0, COMMAND_COUNT-1].
  */
-Command PollAI()
+Command PollAI(GameObject *obj, GameObject* player)
 {
-    // Return a random command
-    return (Command)(rand() % COMMAND_COUNT);
+    // If the player is in range
+    if (Vector2Distance(obj->position, player->position) < 300.0f)
+    {
+        if (obj->position.y > player->position.y)
+        {
+            return COMMAND_MOVE_UP;
+        }
+        else if (obj->position.y < player->position.y)
+        {
+            return COMMAND_MOVE_DOWN;
+        }
+        else if (obj->position.x > player->position.x)
+        {
+            return COMMAND_MOVE_LEFT;
+        }
+        else if (obj->position.x < player->position.x)
+        {
+            return COMMAND_MOVE_RIGHT;
+        }
+    }
+    else
+    {
+    }
+
+    return COMMAND_NONE;
 }
 
 /**

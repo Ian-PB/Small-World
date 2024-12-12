@@ -80,15 +80,6 @@ Command PollInput()
                     return COMMAND_MOVE_RIGHT;
             }
 
-            if (leftStickX > MOVE_HORIZONTAL_THRESHOLD && leftStickY < -MOVE_VERTICAL_THRESHOLD)
-                return COMMAND_MOVE_UP_RIGHT;
-            if (leftStickX < -MOVE_HORIZONTAL_THRESHOLD && leftStickY < -MOVE_VERTICAL_THRESHOLD)
-                return COMMAND_MOVE_UP_LEFT;
-            if (leftStickX > MOVE_HORIZONTAL_THRESHOLD && leftStickY > MOVE_VERTICAL_THRESHOLD)
-                return COMMAND_MOVE_DOWN_RIGHT;
-            if (leftStickX < -MOVE_HORIZONTAL_THRESHOLD && leftStickY > MOVE_VERTICAL_THRESHOLD)
-                return COMMAND_MOVE_DOWN_LEFT;
-
             // Check right trigger for firing command
             if (rightTrigger > FIRING_TRIGGER_TRESHOLD)
                 return COMMAND_ATTACK;
@@ -98,24 +89,7 @@ Command PollInput()
         }
     }
 
-    // If no gamepad input, check keyboard for movement and action commands
 
-    if (IsKeyPressed(KEY_W) || IsKeyDown(KEY_W))
-    {
-        if (IsKeyDown(KEY_A)) 
-            return COMMAND_MOVE_UP_LEFT;    // W + A = Up-Left
-        if (IsKeyDown(KEY_D)) 
-            return COMMAND_MOVE_UP_RIGHT;   // W + D = Up-Right
-        return COMMAND_MOVE_UP;
-    }
-    if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S))
-    {
-        if (IsKeyDown(KEY_A)) 
-            return COMMAND_MOVE_DOWN_LEFT;  // S + A = Down-Left
-        if (IsKeyDown(KEY_D)) 
-            return COMMAND_MOVE_DOWN_RIGHT; // S + D = Down-Right
-        return COMMAND_MOVE_DOWN;
-    }
     
     if (IsKeyPressed(KEY_W) || IsKeyDown(KEY_W))
         return COMMAND_MOVE_UP;
@@ -125,6 +99,8 @@ Command PollInput()
         return COMMAND_MOVE_LEFT;
     if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D))
         return COMMAND_MOVE_RIGHT;
+    if (IsKeyPressed(KEY_F) || IsKeyDown(KEY_F))
+        return COMMAND_ROLL;
     if (IsKeyPressed(KEY_SPACE) || IsKeyDown(KEY_SPACE))
         return COMMAND_ATTACK;
     if (IsKeyPressed(KEY_I))

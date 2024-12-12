@@ -8,13 +8,11 @@ typedef struct Mediator Mediator;
 typedef enum
 {
     COMMAND_MOVE_UP,         // Command to move up
-    COMMAND_MOVE_UP_RIGHT,   // Command to move diagonally up and right (Not Implemented)
-    COMMAND_MOVE_UP_LEFT,    // Command to move diagonally up and left (Not Implemented)
     COMMAND_MOVE_DOWN,       // Command to move down (Not Implemented)
-    COMMAND_MOVE_DOWN_LEFT,  // Command to move diagonally down and left (Not Implemented)
-    COMMAND_MOVE_DOWN_RIGHT, // Command to move diagonally down and right (Not Implemented)
     COMMAND_MOVE_LEFT,       // Command to move left (Not Implemented)
     COMMAND_MOVE_RIGHT,      // Command to move right (Not Implemented)
+    COMMAND_MOVE,
+    COMMAND_ROLL,
     COMMAND_ATTACK,          // Command to attack an action (e.g., shoot)
     COMMAND_COLLISION_START, // Command indicating the start of a collision
     COMMAND_COLLISION_END,   // Command indicating the end of a collision (Not Implemented)

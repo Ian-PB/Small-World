@@ -6,7 +6,7 @@
 # ----------------------------------------
 # Default Compiler and Directories
 # ----------------------------------------
-CC						:= g++
+CC						:= gcc
 
 # ----------------------------------------
 # General Configuration
@@ -105,8 +105,8 @@ endif
 # ----------------------------------------
 # Source files
 # ----------------------------------------
-SRC						:= $(wildcard $(SRC_DIR)/*.cpp)
-OBJ						:= $(SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
+SRC						:= $(wildcard $(SRC_DIR)/*.c)
+OBJ						:= $(SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
 
 # ----------------------------------------
 # Targets
@@ -116,7 +116,7 @@ OBJ						:= $(SRC:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/$(OBJECTS_DIR)/%.o)
 all: check_submodules build run
 
 # Compile object files
-$(BUILD_DIR)/$(OBJECTS_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(BUILD_DIR)/$(OBJECTS_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(BUILD_DIR)/$(OBJECTS_DIR)
     # Copy icon files and spritesheet(s) png
     # Just PNGs copied at the moment
@@ -154,6 +154,8 @@ update_submodules:
 		git checkout master && \
 		git pull origin master && \
 		cd ..
+	git add $(RAYLIB_STARTER_DIR) $(CUTEHEADERS_DIR)
+	git commit -m "Updated submodules to latest versions" 2>/dev/null || true
 
 # Manually reinitialize submodules using direct git commands
 reset_submodules:
@@ -171,7 +173,7 @@ reset_submodules:
 	git clone https://github.com/RandyGaul/cute_headers.git $(CUTEHEADERS_DIR) || \
 		(echo "Failed to clone $(CUTEHEADERS_DIR) repository" && exit 1)
 	
-	echo "Registering submodules in git config..."
+	echo "Registering submodules in git..."
 	git config -f .gitmodules submodule.$(RAYLIB_STARTER_DIR).path $(RAYLIB_STARTER_DIR)
 	git config -f .gitmodules submodule.$(RAYLIB_STARTER_DIR).url https://bitbucket.org/MuddyGames/raylib_starter.git
 	git config -f .gitmodules submodule.$(CUTEHEADERS_DIR).path $(CUTEHEADERS_DIR)
@@ -180,13 +182,19 @@ reset_submodules:
 	echo "Initializing submodule configurations..."
 	git submodule init
 	
-	echo "Checking out default branches for submodules..."
+	echo "Registering submodules in git config..."
 	cd $(RAYLIB_STARTER_DIR) && \
-		git checkout $$(git symbolic-ref --short HEAD) && \
+		DEFAULT_BRANCH=$$(git symbolic-ref --short HEAD) && \
+		git checkout $$DEFAULT_BRANCH && \
 		cd ..
 	cd $(CUTEHEADERS_DIR) && \
-		git checkout $$(git symbolic-ref --short HEAD) && \
+		DEFAULT_BRANCH=$$(git symbolic-ref --short HEAD) && \
+		git checkout $$DEFAULT_BRANCH && \
 		cd ..
+	
+	echo "Adding submodules to git tracking..."
+	git add $(RAYLIB_STARTER_DIR) $(CUTEHEADERS_DIR) .gitmodules
+	git commit -m "Reinitialized submodules" 2>/dev/null || true
 	
 	echo "Verifying directories..."
 	if [ ! -d "$(RAYLIB_STARTER_DIR)" ]; then \
@@ -260,7 +268,7 @@ build_web: check_submodules install_toolchain_web
 	if [ -f "$(EMSDK_DIR)/emsdk_env.sh" ]; then \
 		$(call INFO_MSG, $(MSG_BUILD_WEB_EMSDK)); \
 		bash -i -c "source $(EMSDK_DIR)/emsdk_env.sh && \
-		emcc $(SRC_DIR)/*.cpp -o ./$(WEB_DIR)/index.html \
+		emcc $(SRC_DIR)/*.c -o ./$(WEB_DIR)/index.html \
 			-I. -I$(RAYLIB_INCLUDE) -I$(CUTEHEADERS_INCLUDE) \
 			-L$(RAYLIB_LIBRARY_WEB) \
 			-lraylib \

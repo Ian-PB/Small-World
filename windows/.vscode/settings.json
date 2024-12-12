@@ -33,6 +33,7 @@
             "args": ["--login"],
             "icon": "terminal-bash"
         }
-    }
+    },
+    "cmake.configureOnOpen": false
 }
 

@@ -16,6 +16,8 @@ void InitGame(GameData *gameData)
 {
     printf("Game Initialized!\n");
 
+    InitAudioDevice();      // Initialize audio device
+
     // Initialize the player and NPC with their respective names
     gameData->player = InitPlayer("Player Hero");
     gameData->npc = InitNPC("Skynet");
@@ -48,50 +50,39 @@ void UpdateGame(GameData *gameData)
 
     // Simple random behavior for NPC AI (not truly an AI, just random selection)
     // Static variable to track the last AI action time
-    static float lastAITime = 0.0f;
+    // static float lastAITime = 0.0f;
 
-    // Check if 1 second has passed since the last AI action
-    if (GetTime() - lastAITime >= 1.0f)
+    // Randomly select a command for the NPC
+    command = PollAI(&gameData->npc->base, &gameData->player->base);
+    switch (command)
     {
-        // Poll and execute random commands for the NPC (simulate AI actions)
-        printf("\n#######################################\n");
-        printf("\t%s Handle AI Events", gameData->npc->base.name);
-        printf("\n#######################################\n");
-
-        // Randomly select a command for the NPC
-        command = PollAI();
-        switch (command)
-        {
-        case COMMAND_NONE:
-            HandleEvent((GameObject *)gameData->npc, EVENT_NONE);
-            break;
-        case COMMAND_MOVE_UP:
-            HandleEvent((GameObject *)gameData->npc, EVENT_MOVE);
-            break;
-        case COMMAND_MOVE_DOWN:
-            HandleEvent((GameObject *)gameData->npc, EVENT_MOVE);
-            break;
-        case COMMAND_MOVE_LEFT:
-            HandleEvent((GameObject *)gameData->npc, EVENT_MOVE);
-            break;
-        case COMMAND_MOVE_RIGHT:
-            HandleEvent((GameObject *)gameData->npc, EVENT_MOVE);
-            break;
-        case COMMAND_ATTACK:
-            HandleEvent((GameObject *)gameData->npc, EVENT_ATTACK);
-            break;
-        case COMMAND_COLLISION_START:
-            HandleEvent((GameObject *)gameData->npc, EVENT_DIE);
-            break;
-        case COMMAND_COLLISION_END:
-            HandleEvent((GameObject *)gameData->npc, EVENT_RESPAWN);
-            break;
-        default:
-            break;
-        }
-
-        // Update the last AI execution time
-        lastAITime = GetTime();
+    case COMMAND_NONE:
+        HandleEvent((GameObject *)gameData->npc, EVENT_NONE);
+        printf("COMMAND_NONE");
+        break;
+    case COMMAND_MOVE_UP:
+        HandleEvent((GameObject *)gameData->npc, EVENT_MOVE_UP);
+        break;
+    case COMMAND_MOVE_DOWN:
+        HandleEvent((GameObject *)gameData->npc, EVENT_MOVE_DOWN);
+        break;
+    case COMMAND_MOVE_LEFT:
+        HandleEvent((GameObject *)gameData->npc, EVENT_MOVE_LEFT);
+        break;
+    case COMMAND_MOVE_RIGHT:
+        HandleEvent((GameObject *)gameData->npc, EVENT_MOVE_RIGHT);
+        break;
+    case COMMAND_ATTACK:
+        HandleEvent((GameObject *)gameData->npc, EVENT_ATTACK);
+        break;
+    case COMMAND_COLLISION_START:
+        HandleEvent((GameObject *)gameData->npc, EVENT_DIE);
+        break;
+    case COMMAND_COLLISION_END:
+        HandleEvent((GameObject *)gameData->npc, EVENT_RESPAWN);
+        break;
+    default:
+        break;
     }
 
     // Update the NPC's state after handling the event
@@ -202,6 +193,8 @@ void DrawGame(GameData *gameData)
 void CloseGame(GameData *gameData)
 {
     printf("Game Closed!\n");
+
+    CloseAudioDevice();     // Close audio device
 
     // If the game data is not null, delete all objects associated with the game
     if (gameData != NULL)

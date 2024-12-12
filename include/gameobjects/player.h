@@ -15,7 +15,19 @@ typedef struct
     GameObject base; // The base game object (inherits from GameObject)
     float stamina;   // The player's stamina (could affect actions like running, attacking)
     float mana;      // The player's mana (could affect magic abilities or special moves)
+
+    // Rolling Variables
+    bool rolling;
+    int rollTimer;
+
+    // Attacking Variables
+    bool attacking;
+    int attackTimer;
+
+    int ROLL_DURATION; // frames
+    int ATTACK_DURATION;
 } Player;
+
 
 // Initialize a new Player with a given name (returns a pointer to the Player)
 Player *InitPlayer(const char *name);
@@ -43,6 +55,14 @@ void PlayerWalkingHandleEvent(GameObject *obj, Event event);
 void PlayerEnterWalking(GameObject *obj);  // Called when entering the walking state
 void PlayerUpdateWalking(GameObject *obj); // Called to update the player's behavior while walking
 void PlayerExitWalking(GameObject *obj);   // Called when exiting the walking state
+
+// Handle events in the rolling state (when the player is rolling)
+void PlayerRollingHandleEvent(GameObject *obj, Event event);
+
+// State transition functions for rolling state
+void PlayerEnterRolling(GameObject *obj);  // Called when entering the rolling state
+void PlayerUpdateRolling(GameObject *obj); // Called to update the player's behavior while rolling
+void PlayerExitRolling(GameObject *obj);   // Called when exiting the rolling state
 
 // Handle events in the attacking state (when the player is attacking)
 void PlayerAttackingHandleEvent(GameObject *obj, Event event);
@@ -76,4 +96,6 @@ void PlayerEnterRespawn(GameObject *obj);  // Called when entering the respawn s
 void PlayerUpdateRespawn(GameObject *obj); // Called to update the player's behavior while respawning
 void PlayerExitRespawn(GameObject *obj);   // Called when exiting the respawn
 
-#endif // PLAYER_H
+
+
+#endif

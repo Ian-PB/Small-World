@@ -18,13 +18,23 @@
 			"**/linux.code-workspace": true,
 			"**/macos.code-workspace": true
 		},
-        "terminal.integrated.cwd": "${workspaceFolder:Root}",
-        "cmake.ignoreCMakeListsMissing": true
+		"terminal.integrated.cwd": "${workspaceFolder:Root}",
+		"files.associations": {
+			"atomic": "cpp",
+			"compare": "cpp",
+			"cstddef": "cpp",
+			"limits": "cpp",
+			"type_traits": "cpp",
+			"vector": "cpp",
+			"xmemory": "cpp",
+			"xutility": "cpp"
+		}
 	},
 	"extensions": {
 		"recommendations": [
 			"ms-vscode.cpptools",
-			"ms-vscode.cpptools-themes"
+			"ms-vscode.cpptools-themes",
+			"GitHub.copilot"
 		]
 	}
 }

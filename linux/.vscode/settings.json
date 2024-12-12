@@ -19,6 +19,7 @@
             "path": "pwsh",
             "icon": "terminal-powershell"
         }
-    }
+    },
+    "cmake.configureOnOpen": false
 }
 

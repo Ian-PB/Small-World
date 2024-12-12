@@ -105,7 +105,7 @@ void InitNPCFSM(GameObject *obj)
 
     // ---- STATE_IDLE state configuration ----
     // Define valid transitions from STATE_IDLE
-    State idleValidTransitions[] = {STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
+    State idleValidTransitions[] = {STATE_ATTACKING, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_DEAD};
 
     // Set up the state configuration for STATE_IDLE
     obj->stateConfigs[STATE_IDLE].name = "NPC_Idle";
@@ -119,7 +119,7 @@ void InitNPCFSM(GameObject *obj)
 
     // ---- STATE_ATTACKING state configuration ----
     // Define valid transitions from STATE_ATTACKING
-    State attackValidTransitions[] = {STATE_IDLE, STATE_SHIELD, STATE_DEAD};
+    State attackValidTransitions[] = {STATE_IDLE, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_DEAD};
 
     // Set up the state configuration for STATE_ATTACKING
     obj->stateConfigs[STATE_ATTACKING].name = "NPC_Attacking";
@@ -131,19 +131,61 @@ void InitNPCFSM(GameObject *obj)
     // Configure valid transitions for STATE_ATTACKING
     StateTransitions(&obj->stateConfigs[STATE_ATTACKING], attackValidTransitions, sizeof(attackValidTransitions) / sizeof(State));
 
-    // ---- STATE_SHIELD state configuration ----
-    // Define valid transitions from STATE_SHIELD
-    State sheildingValidTransitions[] = {STATE_IDLE, STATE_ATTACKING, STATE_DEAD};
+    // ---- STATE_MOVING_UP state configuration ----
+    // Define valid transitions from STATE_MOVING_UP
+    State movingUpValidTransitions[] = {STATE_IDLE, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
 
-    // Set up the state configuration for STATE_SHIELD
-    obj->stateConfigs[STATE_SHIELD].name = "NPC_Shielding";
-    obj->stateConfigs[STATE_SHIELD].HandleEvent = NPCShieldingHandleEvent;
-    obj->stateConfigs[STATE_SHIELD].Entry = NPCEnterShielding;
-    obj->stateConfigs[STATE_SHIELD].Update = NPCUpdateShielding;
-    obj->stateConfigs[STATE_SHIELD].Exit = NPCExitShielding;
+    // Set up the state configuration for STATE_MOVING_UP
+    obj->stateConfigs[STATE_MOVING_UP].name = "NPC_Moving_Up";
+    obj->stateConfigs[STATE_MOVING_UP].HandleEvent = NPCMovingUpHandleEvent;
+    obj->stateConfigs[STATE_MOVING_UP].Entry = NPCEnterMovingUp;
+    obj->stateConfigs[STATE_MOVING_UP].Update = NPCUpdateMovingUp;
+    obj->stateConfigs[STATE_MOVING_UP].Exit = NPCExitMovingUp;
 
-    // Configure valid transitions for STATE_SHIELD
-    StateTransitions(&obj->stateConfigs[STATE_SHIELD], sheildingValidTransitions, sizeof(sheildingValidTransitions) / sizeof(State));
+    // Configure valid transitions for STATE_MOVING_UP
+    StateTransitions(&obj->stateConfigs[STATE_MOVING_UP], movingUpValidTransitions, sizeof(movingUpValidTransitions) / sizeof(State));
+
+    // ---- STATE_MOVING_DOWN state configuration ----
+    // Define valid transitions from STATE_MOVING_DOWN
+    State movingDownValidTransitions[] = {STATE_IDLE, STATE_MOVING_UP, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
+
+    // Set up the state configuration for STATE_MOVING_DOWN
+    obj->stateConfigs[STATE_MOVING_DOWN].name = "NPC_Moving_Down";
+    obj->stateConfigs[STATE_MOVING_DOWN].HandleEvent = NPCMovingDownHandleEvent;
+    obj->stateConfigs[STATE_MOVING_DOWN].Entry = NPCEnterMovingDown;
+    obj->stateConfigs[STATE_MOVING_DOWN].Update = NPCUpdateMovingDown;
+    obj->stateConfigs[STATE_MOVING_DOWN].Exit = NPCExitMovingDown;
+
+    // Configure valid transitions for STATE_MOVING_DOWN
+    StateTransitions(&obj->stateConfigs[STATE_MOVING_DOWN], movingDownValidTransitions, sizeof(movingDownValidTransitions) / sizeof(State));
+
+    // ---- STATE_MOVING_LEFT state configuration ----
+    // Define valid transitions from STATE_MOVING_LEFT
+    State movingLeftValidTransitions[] = {STATE_IDLE, STATE_MOVING_UP, STATE_MOVING_DOWN, STATE_MOVING_RIGHT, STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
+
+    // Set up the state configuration for STATE_MOVING_LEFT
+    obj->stateConfigs[STATE_MOVING_LEFT].name = "NPC_Moving_Left";
+    obj->stateConfigs[STATE_MOVING_LEFT].HandleEvent = NPCMovingLeftHandleEvent;
+    obj->stateConfigs[STATE_MOVING_LEFT].Entry = NPCEnterMovingLeft;
+    obj->stateConfigs[STATE_MOVING_LEFT].Update = NPCUpdateMovingLeft;
+    obj->stateConfigs[STATE_MOVING_LEFT].Exit = NPCExitMovingLeft;
+
+    // Configure valid transitions for STATE_MOVING_DOWN
+    StateTransitions(&obj->stateConfigs[STATE_MOVING_LEFT], movingLeftValidTransitions, sizeof(movingLeftValidTransitions) / sizeof(State));
+
+    // ---- STATE_MOVING_RIGHT state configuration ----
+    // Define valid transitions from STATE_MOVING_RIGHT
+    State movingRightValidTransitions[] = {STATE_IDLE, STATE_MOVING_UP, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_ATTACKING, STATE_SHIELD, STATE_DEAD};
+
+    // Set up the state configuration for STATE_MOVING_RIGHT
+    obj->stateConfigs[STATE_MOVING_RIGHT].name = "NPC_Moving_Right";
+    obj->stateConfigs[STATE_MOVING_RIGHT].HandleEvent = NPCMovingRightHandleEvent;
+    obj->stateConfigs[STATE_MOVING_RIGHT].Entry = NPCEnterMovingRight;
+    obj->stateConfigs[STATE_MOVING_RIGHT].Update = NPCUpdateMovingRight;
+    obj->stateConfigs[STATE_MOVING_RIGHT].Exit = NPCExitMovingRight;
+
+    // Configure valid transitions for STATE_MOVING_DOWN
+    StateTransitions(&obj->stateConfigs[STATE_MOVING_RIGHT], movingRightValidTransitions, sizeof(movingRightValidTransitions) / sizeof(State));
 
     // ---- STATE_DEAD state configuration ----
     // Define valid transitions from STATE_DEAD
@@ -177,21 +219,34 @@ void NPCIdleHandleEvent(GameObject *obj, Event event)
 
     switch (event)
     {
+    case EVENT_NONE:
+        // Transition back to Idle if no specific event is triggered
+        obj->previousState = obj->currentState;
+        break;
     case EVENT_ATTACK:
         // Transition to Attacking state if an attack event is received
         ChangeState(obj, STATE_ATTACKING);
         break;
-    case EVENT_DEFEND:
-        // Transition to Shielding state if a defend event is received
-        ChangeState(obj, STATE_SHIELD);
+    case EVENT_MOVE_UP:
+        ChangeState(obj, STATE_MOVING_UP);
+        break;
+    case EVENT_MOVE_DOWN:
+        ChangeState(obj, STATE_MOVING_DOWN);
+        break;
+    case EVENT_MOVE_LEFT:
+        ChangeState(obj, STATE_MOVING_LEFT);
+        break;
+    case EVENT_MOVE_RIGHT:
+        ChangeState(obj, STATE_MOVING_RIGHT);
         break;
     case EVENT_DIE:
         // Transition to Dead state if a die event is received
         ChangeState(obj, STATE_DEAD);
         break;
     // Ignore Events for other cases
-    case EVENT_NONE:
     case EVENT_MOVE:
+    case EVENT_DEFEND:
+    case EVENT_ROLL:
     case EVENT_RESPAWN:
     case EVENT_COLLISION_START:
     case EVENT_COLLISION_END:
@@ -214,15 +269,20 @@ void NPCAttackingHandleEvent(GameObject *obj, Event event)
         ChangeState(obj, STATE_IDLE);
         break;
     case EVENT_DEFEND:
-        // Transition to Shielding state if a defend event is received
-        ChangeState(obj, STATE_SHIELD);
+        // Transition to Walkinging state if a defend event is received
+        ChangeState(obj, STATE_WALKING);
         break;
     case EVENT_DIE:
         // Transition to Dead state if a die event is received
         ChangeState(obj, STATE_DEAD);
         break;
     // Ignore Events for other cases
+    case EVENT_MOVE_UP:
+    case EVENT_MOVE_DOWN:
+    case EVENT_MOVE_LEFT:
+    case EVENT_MOVE_RIGHT:
     case EVENT_MOVE:
+    case EVENT_ROLL:
     case EVENT_ATTACK:
     case EVENT_RESPAWN:
     case EVENT_COLLISION_START:
@@ -232,11 +292,11 @@ void NPCAttackingHandleEvent(GameObject *obj, Event event)
     }
 }
 
-// Handles events for the NPC when in the Shielding state
-void NPCShieldingHandleEvent(GameObject *obj, Event event)
+// Handles events for the NPC when in the Moving Up state
+void NPCMovingUpHandleEvent(GameObject *obj, Event event)
 {
     NPC *npc = (NPC *)obj;
-    printf("\n%s Shield HandleEvent\n", obj->name);
+    printf("\n%s Moving Up HandleEvent\n", obj->name);
     printf("Aggression: %d\n\n", npc->aggression);
 
     switch (event)
@@ -244,6 +304,15 @@ void NPCShieldingHandleEvent(GameObject *obj, Event event)
     case EVENT_NONE:
         // Transition back to Idle if no specific event is triggered
         ChangeState(obj, STATE_IDLE);
+        break;
+    case EVENT_MOVE_DOWN:
+        ChangeState(obj, STATE_MOVING_DOWN);
+        break;
+    case EVENT_MOVE_LEFT:
+        ChangeState(obj, STATE_MOVING_LEFT);
+        break;
+    case EVENT_MOVE_RIGHT:
+        ChangeState(obj, STATE_MOVING_RIGHT);
         break;
     case EVENT_ATTACK:
         // Transition to Attacking state if an attack event is received
@@ -254,12 +323,115 @@ void NPCShieldingHandleEvent(GameObject *obj, Event event)
         ChangeState(obj, STATE_DEAD);
         break;
     // Ignore Events for other cases
-    case EVENT_RESPAWN:
-    case EVENT_MOVE:
-    case EVENT_DEFEND:
-    case EVENT_COLLISION_START:
-    case EVENT_COLLISION_END:
-    case EVENT_COUNT:
+    default:
+        break;
+    }
+}
+
+// Handles events for the NPC when in the Moving Down state
+void NPCMovingDownHandleEvent(GameObject *obj, Event event)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s Moving Down HandleEvent\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    switch (event)
+    {
+    case EVENT_NONE:
+        // Transition back to Idle if no specific event is triggered
+        ChangeState(obj, STATE_IDLE);
+        break;
+    case EVENT_MOVE_UP:
+        ChangeState(obj, STATE_MOVING_UP);
+        break;
+    case EVENT_MOVE_LEFT:
+        ChangeState(obj, STATE_MOVING_LEFT);
+        break;
+    case EVENT_MOVE_RIGHT:
+        ChangeState(obj, STATE_MOVING_RIGHT);
+        break;
+    case EVENT_ATTACK:
+        // Transition to Attacking state if an attack event is received
+        ChangeState(obj, STATE_ATTACKING);
+        break;
+    case EVENT_DIE:
+        // Transition to Dead state if a die event is received
+        ChangeState(obj, STATE_DEAD);
+        break;
+    // Ignore Events for other cases
+    default:
+        break;
+    }
+}
+
+// Handles events for the NPC when in the Moving Left state
+void NPCMovingLeftHandleEvent(GameObject *obj, Event event)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s Moving Left HandleEvent\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    switch (event)
+    {
+    case EVENT_NONE:
+        // Transition back to Idle if no specific event is triggered
+        ChangeState(obj, STATE_IDLE);
+        break;
+    case EVENT_MOVE_UP:
+        ChangeState(obj, STATE_MOVING_UP);
+        break;
+    case EVENT_MOVE_DOWN:
+        ChangeState(obj, STATE_MOVING_DOWN);
+        break;
+    case EVENT_MOVE_RIGHT:
+        ChangeState(obj, STATE_MOVING_RIGHT);
+        break;
+    case EVENT_ATTACK:
+        // Transition to Attacking state if an attack event is received
+        ChangeState(obj, STATE_ATTACKING);
+        break;
+    case EVENT_DIE:
+        // Transition to Dead state if a die event is received
+        ChangeState(obj, STATE_DEAD);
+        break;
+    // Ignore Events for other cases
+    default:
+        break;
+    }
+}
+
+// Handles events for the NPC when in the Moving Right state
+void NPCMovingRightHandleEvent(GameObject *obj, Event event)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s Moving Right HandleEvent\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    switch (event)
+    {
+    case EVENT_NONE:
+        // Transition back to Idle if no specific event is triggered
+        ChangeState(obj, STATE_IDLE);
+        break;
+    case EVENT_MOVE_UP:
+        ChangeState(obj, STATE_MOVING_UP);
+        break;
+    case EVENT_MOVE_DOWN:
+        ChangeState(obj, STATE_MOVING_DOWN);
+        break;
+    case EVENT_MOVE_LEFT:
+        ChangeState(obj, STATE_MOVING_LEFT);
+        break;
+    case EVENT_ATTACK:
+        // Transition to Attacking state if an attack event is received
+        ChangeState(obj, STATE_ATTACKING);
+        break;
+    case EVENT_DIE:
+        // Transition to Dead state if a die event is received
+        ChangeState(obj, STATE_DEAD);
+        break;
+    // Ignore Events for other cases
+    default:
         break;
     }
 }
@@ -285,7 +457,12 @@ void NPCDeadHandleEvent(GameObject *obj, Event event)
     // Ignore Events for other cases (e.g., move, defend) as dead NPCs cannot perform these actions.
     case EVENT_DIE:
     case EVENT_ATTACK:
+    case EVENT_MOVE_UP:
+    case EVENT_MOVE_DOWN:
+    case EVENT_MOVE_LEFT:
+    case EVENT_MOVE_RIGHT:
     case EVENT_MOVE:
+    case EVENT_ROLL:
     case EVENT_DEFEND:
     case EVENT_COLLISION_START:
     case EVENT_COLLISION_END:
@@ -293,6 +470,8 @@ void NPCDeadHandleEvent(GameObject *obj, Event event)
         break;
     }
 }
+
+
 
 // Enter function for Idle state, executed once upon entering Idle
 void NPCEnterIdle(GameObject *obj)
@@ -379,46 +558,164 @@ void NPCExitAttacking(GameObject *obj)
     UpdateAnimation(&obj->animation);
 }
 
-// Enter function for Shielding state, executed once upon entering Shielding
-void NPCEnterShielding(GameObject *obj)
+void NPCEnterMovingUp(GameObject *obj)
 {
     NPC *npc = (NPC *)obj;
-    printf("%s -> ENTER -> Shielding\n", obj->name);
+    printf("\n%s -> ENTER -> Moving Up\n", obj->name);
     printf("Aggression: %d\n\n", npc->aggression);
-    // Initialization code for entering Shielding state, such as enabling shield effects.
 
-    Rectangle sheilding[8] = {
-        {0, 384, 64, 64},   // Frame 1: Row 7, Column 1
-        {64, 384, 64, 64},  // Frame 2: Row 7, Column 2
-        {128, 384, 64, 64}, // Frame 3: Row 7, Column 3
-        {192, 384, 64, 64}, // Frame 4: Row 7, Column 4
-        {256, 384, 64, 64}, // Frame 5: Row 7, Column 5
-        {320, 384, 64, 64}, // Frame 6: Row 7, Column 6
-        {384, 384, 64, 64}, // Frame 7: Row 7, Column 7
-        {448, 384, 64, 64}  // Frame 8: Row 7, Column 8
+    // Moving Up
+    Rectangle walkUp[9] = {
+        {0, 512, 64, 64},   // Frame 1: Row 8, Column 1
+        {64, 512, 64, 64},  // Frame 2: Row 8, Column 2
+        {128, 512, 64, 64}, // Frame 3: Row 8, Column 3
+        {192, 512, 64, 64}, // Frame 4: Row 8, Column 4
+        {256, 512, 64, 64}, // Frame 5: Row 8, Column 5
+        {320, 512, 64, 64}, // Frame 6: Row 8, Column 6
+        {384, 512, 64, 64}, // Frame 7: Row 8, Column 7
+        {448, 512, 64, 64}, // Frame 8: Row 8, Column 8
+        {512, 512, 64, 64}  // Frame 9: Row 8, Column 9
     };
-
-    // Initialize attack animation
-    InitGameObjectAnimation(&npc->base, sheilding, 6, 0.2f);
+    InitGameObjectAnimation(&npc->base, walkUp, 9, 0.1f);
+    obj->velocity.x = 0;
+    obj->velocity.y = -1;
 }
 
-// Update function for Shielding state, called repeatedly during game ticks while in Shielding
-void NPCUpdateShielding(GameObject *obj)
+void NPCUpdateMovingUp(GameObject *obj)
 {
     NPC *npc = (NPC *)obj;
-    printf("%s -> UPDATE -> Shielding\n", obj->name);
+    printf("\n%s -> UPDATE -> Moving Up\n", obj->name);
     printf("Aggression: %d\n\n", npc->aggression);
-    // During game loop and game ticks, execute Shielding state behavior here, such as reducing incoming damage.
+    
+    NPCMove(npc, &obj->velocity);
     UpdateAnimation(&obj->animation);
 }
 
-// Exit function for Shielding state, executed once upon leaving Shielding
-void NPCExitShielding(GameObject *obj)
+void NPCExitMovingUp(GameObject *obj)
 {
     NPC *npc = (NPC *)obj;
-    printf("%s -> EXIT -> Shielding\n", obj->name);
+    printf("\n%s <- EXIT <- Moving Up\n", obj->name);
     printf("Aggression: %d\n\n", npc->aggression);
-    // Cleanup code for leaving Shielding state, if any.
+}
+
+void NPCEnterMovingDown(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> ENTER -> Moving Down\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    // Moving Down
+    Rectangle walkDown[9] = {
+        {0, 640, 64, 64},   // Frame 0
+        {64, 640, 64, 64},  // Frame 1
+        {128, 640, 64, 64}, // Frame 2
+        {192, 640, 64, 64}, // Frame 3
+        {256, 640, 64, 64}, // Frame 4
+        {320, 640, 64, 64}, // Frame 5
+        {384, 640, 64, 64}, // Frame 6
+        {448, 640, 64, 64}, // Frame 7
+        {512, 640, 64, 64}  // Frame 8
+    };
+    InitGameObjectAnimation(&npc->base, walkDown, 9, 0.1f);
+    obj->velocity.x = 0;
+    obj->velocity.y = 1;
+}
+
+void NPCUpdateMovingDown(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> UPDATE -> Moving Down\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    NPCMove(npc, &obj->velocity);
+    UpdateAnimation(&obj->animation);
+}
+
+void NPCExitMovingDown(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s <- EXIT <- Moving Down\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+}
+
+void NPCEnterMovingLeft(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> ENTER -> Moving Left\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+    
+    // Moving Left
+    Rectangle walkLeft[9] = {
+        {0, 576, 64, 64},   // Frame 0
+        {64, 576, 64, 64},  // Frame 1
+        {128, 576, 64, 64}, // Frame 2
+        {192, 576, 64, 64}, // Frame 3
+        {256, 576, 64, 64}, // Frame 4
+        {320, 576, 64, 64}, // Frame 5
+        {384, 576, 64, 64}, // Frame 6
+        {448, 576, 64, 64}, // Frame 7
+        {512, 576, 64, 64}  // Frame 8
+    };
+    InitGameObjectAnimation(&npc->base, walkLeft, 9, 0.1f);
+    obj->velocity.x = -1;
+    obj->velocity.y = 0;
+}
+
+void NPCUpdateMovingLeft(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> UPDATE -> Moving Left\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    NPCMove(npc, &obj->velocity);
+    UpdateAnimation(&obj->animation);
+}
+
+void NPCExitMovingLeft(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s <- EXIT <- Moving Left\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+}
+
+void NPCEnterMovingRight(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> ENTER -> Moving Right\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    // Moving Right
+    Rectangle walkRight[9] = {
+        {0, 704, 64, 64},   // Frame 0
+        {64, 704, 64, 64},  // Frame 1
+        {128, 704, 64, 64}, // Frame 2
+        {192, 704, 64, 64}, // Frame 3
+        {256, 704, 64, 64}, // Frame 4
+        {320, 704, 64, 64}, // Frame 5
+        {384, 704, 64, 64}, // Frame 6
+        {448, 704, 64, 64}, // Frame 7
+        {512, 704, 64, 64}  // Frame 8
+    };
+    InitGameObjectAnimation(&npc->base, walkRight, 9, 0.1f);
+    obj->velocity.x = 1;
+    obj->velocity.y = 0;
+}
+
+void NPCUpdateMovingRight(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s -> UPDATE -> Moving Right\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
+
+    NPCMove(npc, &obj->velocity);
+    UpdateAnimation(&obj->animation);
+}
+
+void NPCExitMovingRight(GameObject *obj)
+{
+    NPC *npc = (NPC *)obj;
+    printf("\n%s <- EXIT <- Moving Right\n", obj->name);
+    printf("Aggression: %d\n\n", npc->aggression);
 }
 
 // Enter function for Dead state, executed once upon entering Dead
@@ -458,4 +755,15 @@ void NPCExitDead(GameObject *obj)
     printf("%s -> EXIT -> Dead\n", obj->name);
     printf("Aggression: %d\n\n", npc->aggression);
     // Cleanup code for leaving Dead state, such as removing NPC from the active world, playing respawn animations, etc.
+}
+
+// Common movement function to handle state and animation transitions
+void NPCMove(NPC *npc, Vector2* moveDirection)
+{
+    npc->base.position.x += moveDirection->x;
+    npc->base.position.y += moveDirection->y;
+
+    // Update Collider
+    npc->base.collider.p.x = npc->base.position.x;
+    npc->base.collider.p.y = npc->base.position.y;
 }

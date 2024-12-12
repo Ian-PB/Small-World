@@ -13,6 +13,8 @@
 #include "../include/fsm/fsm.h"
 #include "../include/animation/animation.h"
 
+
+
 // Base structure for a game object
 typedef struct GameObject
 {
@@ -24,7 +26,8 @@ typedef struct GameObject
 
     // Position Vectors
     Vector2 position; // Gameobjects position in the game world
-    Vector2 velocity; // Not implemented : Gameobjects movement velocity
+    Vector2 velocity;
+
 
     // Shape Color
     Color color; // Gameobject's color, changes based on currentState
@@ -66,4 +69,4 @@ void HandleCollision(GameObject *lhs, GameObject *rhs);
 // Delete a game object and free associated memory/resources
 void DeleteGameObject(GameObject *obj);
 
-#endif // GAMEOBJECT_H
+#endif

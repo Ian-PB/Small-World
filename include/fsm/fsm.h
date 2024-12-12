@@ -19,6 +19,13 @@ typedef enum
 {
     STATE_IDLE,      // Represents the idle state (no action)
     STATE_WALKING,   // Represents the walking state
+    
+    STATE_MOVING_UP,    // Represents the state when the player is moving upwards
+    STATE_MOVING_DOWN,  // Represents the state when the player is moving downwards
+    STATE_MOVING_LEFT,  // Represents the state when the player is moving to the left
+    STATE_MOVING_RIGHT, // Represents the state when the player is moving to the right
+
+    STATE_ROLLING,
     STATE_ATTACKING, // Represents the attacking state
     STATE_SHIELD,    // Represents the shield state (defensive posture)
     STATE_DEAD,      // Represents the dead state (game over or defeated)
@@ -71,4 +78,4 @@ void StateTransitions(StateConfig *stateConfig, State *transitions, int count);
 // Function to print each state configuration
 void PrintStateConfigs(StateConfig *stateConfigs, int stateCount);
 
-#endif // FSM_H
+#endif

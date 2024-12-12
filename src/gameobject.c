@@ -54,6 +54,7 @@ void InitGameObject(GameObject *obj,
     obj->position = position;
     obj->velocity = velocity;
 
+
     // Initialize the previous and current states to currentState (normally IDLE)
     obj->currentState = currentState;
     obj->previousState = STATE_COUNT; // So that at initial load idle animation is loaded

@@ -7,15 +7,16 @@ typedef enum
     EVENT_NONE, // Represents no event or an idle state where nothing happens.
 
     // Movement Events:
-    // EVENT_MOVE_UP, // Represents moving the player character up (e.g., in a platformer, upwards movement).
+    EVENT_MOVE_UP, // Represents moving the player character up (e.g., in a platformer, upwards movement).
     // EVENT_MOVE_UP_RIGHT,   // Represents moving the player character diagonally up-right (e.g., in a platformer, jumping at an angle).
     // EVENT_MOVE_UP_LEFT,    // Represents moving the player character diagonally up-left (e.g., in a platformer, jumping at an angle).
-    // EVENT_MOVE_DOWN,       // Represents moving the player character down (e.g., in a platformer, downward movement).
+    EVENT_MOVE_DOWN,       // Represents moving the player character down (e.g., in a platformer, downward movement).
     // EVENT_MOVE_DOWN_RIGHT, // Represents moving the player character diagonally down-right (e.g., running at an angle).
     // EVENT_MOVE_DOWN_LEFT,  // Represents moving the player character diagonally down-left (e.g., running at an angle).
-    // EVENT_MOVE_LEFT,       // Represents moving the player character to the left (e.g., in a platformer, leftward movement).
-    // EVENT_MOVE_RIGHT,      // Represents moving the player character to the right (e.g., in a platformer, rightward movement).
+    EVENT_MOVE_LEFT,       // Represents moving the player character to the left (e.g., in a platformer, leftward movement).
+    EVENT_MOVE_RIGHT,      // Represents moving the player character to the right (e.g., in a platformer, rightward movement).
     EVENT_MOVE, // A general move event for when the player is moving in any direction, used as a catch-all for movement.
+    EVENT_ROLL,
 
     // Environmental/State Events:
     // EVENT_FLOOR_LAND, // Represents the player landing on the floor after a jump or fall (e.g., gravity pulling the player down).
@@ -36,8 +37,6 @@ typedef enum
     EVENT_COLLISION_END,   // Represents the end of a collision (e.g., player moving away from a colliding object or enemy).
 
     // Player Actions:
-    // EVENT_JUMP,   // Represents the player character jumping (e.g., player jumps to avoid obstacles or reach higher platforms).
-    // EVENT_CROUCH, // Represents the player character crouching (e.g., ducking to avoid attacks or entering narrow areas).
     // EVENT_PICKUP, // Represents the player picking up an item (e.g., collecting weapons, coins, health potions, etc.).
 
     // Game State Events:
@@ -52,4 +51,4 @@ typedef enum
     EVENT_COUNT // Represents the total number of events (for counting purposes, typically used for array size).
 } Event;        // Define 'Event' as the type of the enum
 
-#endif // EVENTS_H
+#endif

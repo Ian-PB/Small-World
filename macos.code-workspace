@@ -18,13 +18,13 @@
 			"**/linux.code-workspace": true,
 			"**/windows.code-workspace": true
 		},
-        "terminal.integrated.cwd": "${workspaceFolder:Root}",
-        "cmake.ignoreCMakeListsMissing": true
+        "terminal.integrated.cwd": "${workspaceFolder:Root}"
 	},
 	"extensions": {
 		"recommendations": [
 			"ms-vscode.cpptools",
-			"ms-vscode.cpptools-themes"
+			"ms-vscode.cpptools-themes",
+			"GitHub.copilot"
 		]
 	}
 }
