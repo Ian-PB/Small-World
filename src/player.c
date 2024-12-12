@@ -861,6 +861,9 @@ void PlayerEnterDie(GameObject *obj)
 {
     printf("\n%s -> ENTER -> Die\n", obj->name);
     // Complete the remainder of the method
+
+    obj->position.x = 100;
+    obj->position.x = 100;
 }
 
 void PlayerUpdateDie(GameObject *obj)
@@ -881,6 +884,8 @@ void PlayerEnterRespawn(GameObject *obj)
 {
     printf("\n%s -> ENTER -> Respawn\n", obj->name);
     // Complete the remainder of the method
+
+    obj->health = 100;
 }
 
 void PlayerUpdateRespawn(GameObject *obj)

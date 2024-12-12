@@ -45,8 +45,15 @@ void UpdateGame(GameData *gameData)
     Command command = PollInput();
     ExecuteCommand(command, gameData->mediator); // Execute the command via the mediator
 
+    // Check if player should die
+    if (gameData->player->base.health <= 0)
+    {
+        ChangeState((GameObject *)gameData->player, STATE_DEAD);
+    }
+
     // Update the player's state based on its current configuration
     UpdateState(&gameData->player->base);
+
 
     // Simple random behavior for NPC AI (not truly an AI, just random selection)
     // Static variable to track the last AI action time
