@@ -105,7 +105,7 @@ void InitNPCFSM(GameObject *obj)
 
     // ---- STATE_IDLE state configuration ----
     // Define valid transitions from STATE_IDLE
-    State idleValidTransitions[] = {STATE_ATTACKING, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_DEAD};
+    State idleValidTransitions[] = {STATE_ATTACKING, STATE_MOVING_UP, STATE_MOVING_DOWN, STATE_MOVING_LEFT, STATE_MOVING_RIGHT, STATE_DEAD};
 
     // Set up the state configuration for STATE_IDLE
     obj->stateConfigs[STATE_IDLE].name = "NPC_Idle";

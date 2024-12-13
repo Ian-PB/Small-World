@@ -57,6 +57,9 @@ Command PollAI(GameObject *obj, GameObject* player)
         obj->position.x = 450;
         obj->position.y = 450;
 
+        obj->collider.p.x = obj->position.x;
+        obj->collider.p.y = obj->position.y;
+
         obj->health = 100;
     }
     // If the player is in range
